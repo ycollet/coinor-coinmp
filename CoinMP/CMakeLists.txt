@@ -36,6 +36,32 @@ endif ()
 configure_file(${CMAKE_CURRENT_SOURCE_DIR}/include/config.h.in        ${CMAKE_BINARY_DIR}/CoinMP/include/config.h)
 configure_file(${CMAKE_CURRENT_SOURCE_DIR}/include/config_coinmp.h.in ${CMAKE_BINARY_DIR}/CoinMP/include/config_coinmp.h)
 
+#
+# pkg-config file generation
+#
+
+set(prefix            "${CMAKE_INSTALL_PREFIX}")
+set(exec_prefix       "\${prefix}")
+set(libdir            "${CMAKE_INSTALL_PREFIX}/${CMAKE_INSTALL_LIBDIR}")
+set(includedir        "${CMAKE_INSTALL_PREFIX}/${CMAKE_INSTALL_INCLUDEDIR}")
+set(COINMP_PCLIBS     "")
+set(COINMP_PCREQUIRES "cbc clp osi-clp")
+set(PACKAGE_VERSION   "${COINMP_VERSION}")
+
+configure_file(${CoinMP_DIR}/coinmp.pc.in ${CMAKE_BINARY_DIR}/CoinMP/coinmp.pc @ONLY)
+
+set(libdir         "${CoinMP_DIR}")
+set(abs_source_dir "${CMAKE_BINARY_DIR}/bin")
+
+configure_file(${CoinMP_DIR}/coinmp-uninstalled.pc.in ${CMAKE_BINARY_DIR}/CoinMP/coinmp-uninstalled.pc @ONLY)
+
+install(FILES ${CMAKE_BINARY_DIR}/CoinMP/coinmp.pc
+        DESTINATION ${CMAKE_INSTALL_PREFIX}/${CMAKE_INSTALL_LIBDIR}/pkg-config/)
+
+#
+# Build
+#
+
 set(CoinMP_SRC_LIST ${CoinMP_DIR}/src/CoinMP.cpp
                     ${CoinMP_DIR}/src/CoinProblem.c
                     ${CoinMP_DIR}/src/CoinResult.c
@@ -207,11 +233,13 @@ if (COINMP_BUILD_EXAMPLES)
 endif ()
 
 install(TARGETS libCoinMP
-        DESTINATION lib)
+        RUNTIME DESTINATION ${CMAKE_INSTALL_PREFIX}/${CMAKE_INSTALL_BINDIR}
+        LIBRARY DESTINATION ${CMAKE_INSTALL_PREFIX}/${CMAKE_INSTALL_LIBDIR}
+        ARCHIVE DESTINATION ${CMAKE_INSTALL_PREFIX}/${CMAKE_INSTALL_LIBDIR}/static)
 
 install(FILES ${CoinMP_DIR}/src/CoinMP.h 
-        DESTINATION include/coin)
+        DESTINATION ${CMAKE_INSTALL_PREFIX}/${CMAKE_INSTALL_INCLUDEDIR}/coin)
 
 install(FILES ${CMAKE_BINARY_DIR}/CoinMP/include/config_coinmp.h
-        DESTINATION include/coin
+        DESTINATION ${CMAKE_INSTALL_PREFIX}/${CMAKE_INSTALL_INCLUDEDIR}/coin
         RENAME CoinMPConfig.h)
